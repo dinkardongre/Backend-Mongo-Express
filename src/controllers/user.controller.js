@@ -4,7 +4,7 @@ import {User} from "../models/user.model.js"
 import {uploadOnCloudinary} from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
-import { channel, subscribe } from "diagnostics_channel";
+import mongoose from "mongoose";
 
 const generateAccessAndRefreshTokens = async(userId)=>{
     try {
@@ -147,8 +147,8 @@ const logoutUser = asyncHandler(async(req, res)=>{
    await User.findByIdAndUpdate(
         req.user._id,
         {
-            $set : {
-                refreshToken : undefined
+            $unset : {
+                refreshToken : 1 //this removes the field from document
             }
         },
         {
@@ -234,7 +234,6 @@ const changeCurrentPassword = asyncHandler(async(req, res)=>{
    .status(200)
    .json(new ApiResponse(200, {}, "Password change successfully"))
 })
-
 
 const getCurrentUser = asyncHandler(async(req, res)=>{
     return res
@@ -341,7 +340,6 @@ const getUserChannelProfile = asyncHandler(async(req, res)=>{
     }
 
     const channel = await User.aggregate([
-        console.log(channel),
         {
             $match : {
                 username : username?.toLowerCase()
@@ -384,7 +382,7 @@ const getUserChannelProfile = asyncHandler(async(req, res)=>{
             $project : {
                 fullName : 1,
                 username : 1,
-                $subscribers : 1,
+                subscribersCount : 1,
                 channelsSubscribedToCount : 1,
                 isSubscribed : 1,
                 avatar : 1,
